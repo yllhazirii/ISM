@@ -9,52 +9,55 @@ on:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
+
     steps:
-      # 1️⃣ Checkout the repository
+      # 1️⃣ Checkout repository
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      # 2️⃣ Set version tags using commit SHA
-      - name: Set image tags
-        id: vars
-        run: |
-          COMMIT_SHA=$(git rev-parse --short HEAD)
-          echo "COMMIT_SHA=$COMMIT_SHA" >> $GITHUB_ENV
-          echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$COMMIT_SHA" >> $GITHUB_ENV
-          echo "FRONTEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/frontend:$COMMIT_SHA" >> $GITHUB_ENV
-
-      # 3️⃣ Login to Azure
+      # 2️⃣ Azure Login using Service Principal
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 4️⃣ Build & push Backend image
-      - name: Build & push Backend image
+      # 3️⃣ ACR Docker login via Azure CLI
+      - name: Docker Login to ACR
+        run: |
+          az acr login --name ${{ secrets.ACR_NAME }}
+
+      # 4️⃣ Set Image Tags
+      - name: Set image tags
+        id: vars
+        run: |
+          COMMIT_SHA=$(git rev-parse --short HEAD)
+          echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$COMMIT_SHA" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/frontend:$COMMIT_SHA" >> $GITHUB_ENV
+
+      # 5️⃣ Build & Push Backend Image
+      - name: Build & Push Backend Image
         run: |
           docker build -t $BACKEND_IMAGE ./backend
-          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_NAME }}.azurecr.io -u ${{ secrets.ACR_USERNAME }} --password-stdin
           docker push $BACKEND_IMAGE
 
-      # 5️⃣ Build & push Frontend image
-      - name: Build & push Frontend image
+      # 6️⃣ Deploy Backend to Azure Container Apps
+      - name: Deploy Backend ACA
+        uses: azure/container-apps-deploy@v0
+        with:
+          containerAppName: backend-api
+          resourceGroup: ${{ secrets.AZURE_RG }}
+          image: ${{ env.BACKEND_IMAGE }}
+
+      # 7️⃣ Build & Push Frontend Image
+      - name: Build & Push Frontend Image
         run: |
           docker build -t $FRONTEND_IMAGE ./frontend
-          echo ${{ secrets.ACR_PASSWORD }} | docker login ${{ secrets.ACR_NAME }}.azurecr.io -u ${{ secrets.ACR_USERNAME }} --password-stdin
           docker push $FRONTEND_IMAGE
 
-      # 6️⃣ Deploy Backend ACA
-      - name: Deploy Backend ACA
-        run: |
-          az containerapp update \
-            --name backend-api \
-            --resource-group ${{ secrets.AZURE_RG }} \
-            --image $BACKEND_IMAGE
-
-      # 7️⃣ Deploy Frontend ACA
+      # 8️⃣ Deploy Frontend to Azure Container Apps
       - name: Deploy Frontend ACA
-        run: |
-          az containerapp update \
-            --name frontend-app \
-            --resource-group ${{ secrets.AZURE_RG }} \
-            --image $FRONTEND_IMAGE
+        uses: azure/container-apps-deploy@v0
+        with:
+          containerAppName: frontend-app
+          resourceGroup: ${{ secrets.AZURE_RG }}
+          image: ${{ env.FRONTEND_IMAGE }}

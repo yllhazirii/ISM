@@ -114,6 +114,11 @@ class Settings(BaseSettings):
     SITE_DOMAIN: str = ''
     SITE_NAME: str = ''
     SHAREPOINT_FILE_NAME: str = ''
+    SHAREPOINT_FOLDER_NAME: str = "Depot Master"
+
+    DEPOT_MASTER: str = ''
+    GATE_OUT: str = ''
+    DEPOT_ADDRESS: str = ''
 
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:

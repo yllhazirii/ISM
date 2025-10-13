@@ -1,0 +1,93 @@
+{
+  "sheets": [
+    {
+      "name": "Depot Master ",
+      "formatted_name": "DepotMaster",
+      "columns": [
+        {"name": "Vendor", "formatted_name": "vendor", "type": "str", "position": 0},
+        {"name": "Depot", "formatted_name": "depot", "type": "str", "position": 1},
+        {"name": "City", "formatted_name": "city", "type": "str", "position": 2},
+        {"name": "Customer", "formatted_name": "customer", "type": "str", "position": 3},
+        {"name": "Invoice", "formatted_name": "invoice", "type": "str", "position": 4},
+        {"name": "Ven Invoice #", "formatted_name": "ven_invoice_number", "type": "str", "position": 5},
+        {"name": "PO #", "formatted_name": "po_number", "type": "str", "position": 6},
+        {"name": "Acceptance #", "formatted_name": "acceptance_number", "type": "str", "position": 7},
+        {"name": "Release #", "formatted_name": "release_number", "type": "str", "position": 8},
+        {"name": "Container #", "formatted_name": "container_number", "type": "str", "position": 9},
+        {"name": "Type", "formatted_name": "type", "type": "str", "position": 10},
+        {"name": "Condition", "formatted_name": "condition", "type": "str", "position": 11},
+        {"name": "FLP", "formatted_name": "flp", "type": "str", "position": 12},
+        {"name": "LB", "formatted_name": "lb", "type": "str", "position": 13},
+        {"name": "Color", "formatted_name": "color", "type": "str", "position": 14},
+        {"name": "Berth ETA", "formatted_name": "berth_eta", "type": "datetime", "position": 15},
+        {"name": "Gate In Date", "formatted_name": "gate_in_date", "type": "datetime", "position": 16},
+        {"name": "PC", "formatted_name": "pc", "type": "str", "position": 17},
+        {"name": "PUC", "formatted_name": "puc", "type": "str", "position": 18},
+        {"name": "Price", "formatted_name": "price", "type": "float", "position": 19},
+        {"name": "Damage", "formatted_name": "damage", "type": "float", "position": 20},
+        {"name": "Approved", "formatted_name": "approved", "type": "str", "position": 21},
+        {"name": "Price After Damage", "formatted_name": "price_after_damage", "type": "float", "position": 22},
+        {"name": "Gate Out Date", "formatted_name": "gate_out_date", "type": "datetime", "position": 23}
+      ]
+    },
+    {
+      "name": "Gate Out ",
+      "formatted_name": "GateOut",
+      "columns": [
+        {"name": "City", "formatted_name": "city", "type": "str", "position": 0},
+        {"name": "Customer", "formatted_name": "customer", "type": "str", "position": 1},
+        {"name": "ISM Order #", "formatted_name": "ism_order_number", "type": "str", "position": 2},
+        {"name": "Ven Invoice #", "formatted_name": "ven_invoice_number", "type": "str", "position": 3},
+        {"name": "PO #", "formatted_name": "po_number", "type": "str", "position": 4},
+        {"name": "Acceptance #", "formatted_name": "acceptance_number", "type": "str", "position": 5},
+        {"name": "Release #", "formatted_name": "release_number", "type": "str", "position": 6},
+        {"name": "Container #", "formatted_name": "container_number", "type": "str", "position": 7},
+        {"name": "Type", "formatted_name": "type", "type": "str", "position": 8},
+        {"name": "Condition", "formatted_name": "condition", "type": "str", "position": 9},
+        {"name": "FLP", "formatted_name": "flp", "type": "str", "position": 10},
+        {"name": "LB", "formatted_name": "lb", "type": "str", "position": 11},
+        {"name": "Color", "formatted_name": "color", "type": "str", "position": 12},
+        {"name": "Berth ETA", "formatted_name": "berth_eta", "type": "datetime", "position": 13},
+        {"name": "Gate In Date", "formatted_name": "gate_in_date", "type": "datetime", "position": 14},
+        {"name": "PC", "formatted_name": "pc", "type": "str", "position": 15},
+        {"name": "PUC", "formatted_name": "puc", "type": "str", "position": 16},
+        {"name": "Price", "formatted_name": "price", "type": "float", "position": 17},
+        {"name": "Damage", "formatted_name": "damage", "type": "float", "position": 18},
+        {"name": "Approved", "formatted_name": "approved", "type": "str", "position": 19},
+        {"name": "Price After Damage", "formatted_name": "price_after_damage", "type": "float", "position": 20},
+        {"name": "Gate Out Date", "formatted_name": "gate_out_date", "type": "datetime", "position": 21}
+      ]
+    },
+    {
+      "name": "Depot Address and Price",
+      "formatted_name": "DepotAddressPrice",
+      "columns": [
+        {"name": "Depot Name", "formatted_name": "depot_name", "type": "str", "position": 0},
+        {"name": "City", "formatted_name": "city", "type": "str", "position": 1},
+        {"name": "Accpt", "formatted_name": "accpt", "type": "str", "position": 2},
+        {"name": "Rels", "formatted_name": "rels", "type": "str", "position": 3},
+        {"name": "Contact Name", "formatted_name": "contact_name", "type": "str", "position": 4},
+        {"name": "Phone Number", "formatted_name": "phone_number", "type": "str", "position": 5},
+        {"name": "Gate In", "formatted_name": "gate_in", "type": "float", "position": 6},
+        {"name": "Gate Out", "formatted_name": "gate_out", "type": "float", "position": 7},
+        {"name": "Lift on", "formatted_name": "lift_on", "type": "float", "position": 8},
+        {"name": "Lift off", "formatted_name": "lift_off", "type": "float", "position": 9},
+        {"name": "M&R Labor HR", "formatted_name": "mr_labor_hr", "type": "float", "position": 10},
+        {"name": "Split", "formatted_name": "split", "type": "float", "position": 11},
+        {"name": "10'STD", "formatted_name": "ten_std", "type": "float", "position": 12},
+        {"name": "20'Duo", "formatted_name": "twenty_duo", "type": "float", "position": 13},
+        {"name": "20'STD", "formatted_name": "twenty_std", "type": "float", "position": 14},
+        {"name": "20'HC", "formatted_name": "twenty_hc", "type": "float", "position": 15},
+        {"name": "40'STD", "formatted_name": "forty_std", "type": "float", "position": 16},
+        {"name": "40'HC", "formatted_name": "forty_hc", "type": "float", "position": 17},
+        {"name": "40'HCDD", "formatted_name": "forty_hcdd", "type": "float", "position": 18},
+        {"name": "45'", "formatted_name": "forty_five", "type": "float", "position": 19},
+        {"name": "53'", "formatted_name": "fifty_three", "type": "float", "position": 20},
+        {"name": "Address", "formatted_name": "address", "type": "str", "position": 21},
+        {"name": "Email:", "formatted_name": "email_1", "type": "str", "position": 22},
+        {"name": "Email:", "formatted_name": "email_2", "type": "str", "position": 23},
+        {"name": "Fab/Split", "formatted_name": "fab_split", "type": "str", "position": 24}
+      ]
+    }
+  ]
+}

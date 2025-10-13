@@ -53,6 +53,9 @@ services:
         condition: service_healthy
         restart: true
     command: bash scripts/prestart.sh
+    volumes:
+      - ./backend/app/sharepoint:/app/app/sharepoint
+      - ./backend/app/models:/app/app/models
     env_file:
       - .env
     environment:
@@ -90,6 +93,8 @@ services:
         condition: service_completed_successfully
     env_file:
       - .env
+#    volumes:
+#      - ./backend/app/models:/app/app/models
     environment:
       - DOMAIN=${DOMAIN}
       - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}

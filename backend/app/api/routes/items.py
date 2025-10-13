@@ -2,11 +2,10 @@ import uuid
 from typing import Any
 
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
-from app.api.services import GraphClient
 from app.api.deps import CurrentUser, SessionDep
-from app.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
+from app.models.models import Item, ItemCreate, ItemPublic, ItemsPublic, ItemUpdate, Message
 
 
 

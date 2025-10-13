@@ -4,14 +4,22 @@ from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 import asyncio
+import pandas as pd
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.api.services.EmailParser import EmailParser
+from app.api.services.DataSyncer import DataSyncer
+from app.api.services.GraphClient import GraphClient
+from app.api.services.DatabaseClient import DatabaseClient
+from app.api.services.FileEditor import FileEditor
+
 
 def custom_generate_unique_id(route: APIRoute) -> str:
     return f"{route.tags[0]}-{route.name}"
 
-# Initialize Sentry if configured
+
+
 if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
     sentry_sdk.init(dsn=str(settings.SENTRY_DSN), enable_tracing=True)
 
@@ -40,15 +48,28 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 # -----------------------
 scheduler = BackgroundScheduler()
 
+
 def inventory_job():
     """
     Put your scheduled job logic here.
     For example, fetch SharePoint files, read emails, or update database.
     """
     print("Running inventory job...")
+    # graphClient = GraphClient()
+    # dbClient = DatabaseClient()
+    # fileEditor = FileEditor(graphClient)
+    #
+    # dataSyncer = DataSyncer(fileEditor, dbClient)
+    # emailParser = EmailParser(graphClient)
+    # structured = emailParser.get_emails(top=5, distribution_list="Inventory")
+    # for record in structured:
+    #     print(record)
+    # dataSyncer.check_and_sync()
+
 
 # Schedule the job every 5 minutes
-scheduler.add_job(inventory_job, 'interval', minutes=5)
+scheduler.add_job(inventory_job, 'interval', seconds=60)
+
 
 # Start the scheduler when the app starts
 @app.on_event("startup")
