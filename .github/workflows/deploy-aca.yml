@@ -1,4 +1,4 @@
-name: Deploy Backend & Frontend to Azure Container Apps
+name: Build & Push Docker Images to ACR
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -21,7 +21,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3️⃣ ACR Docker login via Azure CLI
+      # 3️⃣ Login to Azure Container Registry
       - name: Docker Login to ACR
         run: |
           az acr login --name ${{ secrets.ACR_NAME }}
@@ -32,32 +32,20 @@ jobs:
         run: |
           COMMIT_SHA=$(git rev-parse --short HEAD)
           echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$COMMIT_SHA" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/backend:latest" >> $GITHUB_ENV
           echo "FRONTEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/frontend:$COMMIT_SHA" >> $GITHUB_ENV
+          echo "FRONTEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/frontend:latest" >> $GITHUB_ENV
 
       # 5️⃣ Build & Push Backend Image
       - name: Build & Push Backend Image
         run: |
-          docker build -t $BACKEND_IMAGE ./backend
+          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
           docker push $BACKEND_IMAGE
+          docker push $BACKEND_IMAGE_LATEST
 
-      # 6️⃣ Deploy Backend to Azure Container Apps
-      - name: Deploy Backend ACA
-        uses: azure/container-apps-deploy@v0
-        with:
-          containerAppName: backend-api
-          resourceGroup: ${{ secrets.AZURE_RG }}
-          image: ${{ env.BACKEND_IMAGE }}
-
-      # 7️⃣ Build & Push Frontend Image
+      # 6️⃣ Build & Push Frontend Image
       - name: Build & Push Frontend Image
         run: |
-          docker build -t $FRONTEND_IMAGE ./frontend
+          docker build -t $FRONTEND_IMAGE -t $FRONTEND_IMAGE_LATEST ./frontend
           docker push $FRONTEND_IMAGE
-
-      # 8️⃣ Deploy Frontend to Azure Container Apps
-      - name: Deploy Frontend ACA
-        uses: azure/container-apps-deploy@v0
-        with:
-          containerAppName: frontend-app
-          resourceGroup: ${{ secrets.AZURE_RG }}
-          image: ${{ env.FRONTEND_IMAGE }}
+          docker push $FRONTEND_IMAGE_LATEST
