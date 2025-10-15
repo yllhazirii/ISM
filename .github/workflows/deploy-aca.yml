@@ -1,14 +1,20 @@
-name: Build, Push & Deploy Backend to ACR + ACI
+name: Build, Push & Deploy Backend to ACR + Container App
 
 on:
   push:
-    branches:
-      - main
-  workflow_dispatch:
+    # Trigger workflow on tags starting with "v", e.g., v1.0.0
+    tags:
+      - 'v*'
+  workflow_dispatch:  # Optional manual trigger
 
 jobs:
   build-and-deploy-backend:
     runs-on: ubuntu-latest
+
+    env:
+      AZURE_RESOURCE_GROUP: $AZURE_RESOURCE_GROUP
+      CONTAINER_APP_NAME: $CONTAINER_APP_NAME
+      CONTAINER_APP_ENV: $CONTAINER_APP_ENV
 
     steps:
       # 1️⃣ Checkout repository
@@ -21,37 +27,54 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3️⃣ Docker Login to ACR
+      # 3️⃣ Set Azure Subscription
+      - name: Set Azure Subscription
+        run: |
+          az account show
+          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      # 4️⃣ Docker Login to ACR
       - name: Docker Login to ACR
         run: |
           az acr login --name ${{ secrets.ACR_NAME }}
-#
-#      # 4️⃣ Set backend image tags
-#      - name: Set image tags
-#        id: vars
-#        run: |
-#          COMMIT_SHA=$(git rev-parse --short HEAD)
-#          echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$COMMIT_SHA" >> $GITHUB_ENV
-#          echo "BACKEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/backend:latest" >> $GITHUB_ENV
-#
-#      # 5️⃣ Build & Push Backend Image
-#      - name: Build & Push Backend Image
-#        run: |
-#          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
-#          docker push $BACKEND_IMAGE
-#          docker push $BACKEND_IMAGE_LATEST
 
-
- # 6️⃣ Update existing Container App
-      - name: Update Container App
-        env:
-          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
+      # 5️⃣ Set backend image tags using the tag name
+      - name: Set image tags
+        id: vars
         run: |
-          CONTAINER_APP_NAME=inventory-backend
-          CONTAINER_APP_ENV=inventory-container-env
+          TAG_NAME=${GITHUB_REF#refs/tags/}
+          echo "Using tag: $TAG_NAME"
+          echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$TAG_NAME" >> $GITHUB_ENV
+          echo "BACKEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/backend:latest" >> $GITHUB_ENV
 
-          echo "Updating Container App '$CONTAINER_APP_NAME' with new image..."
-          az containerapp update \
-            --name "$CONTAINER_APP_NAME" \
-            --resource-group "$AZURE_RESOURCE_GROUP" \
-            --image "$BACKEND_IMAGE_LATEST"
+      # 6️⃣ Build & Push Backend Image
+      - name: Build & Push Backend Image
+        run: |
+          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
+          docker push $BACKEND_IMAGE
+          docker push $BACKEND_IMAGE_LATEST
+
+      # 7️⃣ Create or Update Container App
+      - name: Create or Update Container App
+        run: |
+          echo "Checking if Container App '$CONTAINER_APP_NAME' exists..."
+          if az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$AZURE_RESOURCE_GROUP" &> /dev/null; then
+            echo "Container App exists. Updating image..."
+            az containerapp update \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --image "$BACKEND_IMAGE_LATEST"
+          else
+            echo "Container App does not exist. Creating..."
+            az containerapp create \
+              --name "$CONTAINER_APP_NAME" \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --environment "$CONTAINER_APP_ENV" \
+              --image "$BACKEND_IMAGE_LATEST" \
+              --cpu 1 \
+              --memory 1Gi \
+              --ingress external \
+              --target-port 8000 \
+              --min-replicas 1 \
+              --max-replicas 1
+          fi
