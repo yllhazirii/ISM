@@ -7,12 +7,12 @@ set -x
 python app/backend_pre_start.py
 
 # Check if there are any Alembic versions
-#alembic revision --autogenerate -m "init schema"
+#alembic revision --autogenerate -m "revision schema"
 
 # Run migrations
 alembic upgrade head
 
-# Create initial data in DB
 python app/create_models.py
 
+# Create initial data in DB
 python app/initial_data.py

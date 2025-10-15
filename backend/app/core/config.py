@@ -8,11 +8,9 @@ from pydantic import (
     BeforeValidator,
     EmailStr,
     HttpUrl,
-    PostgresDsn,
     computed_field,
     model_validator,
 )
-from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
 
@@ -54,11 +52,6 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
-    POSTGRES_SERVER: str
-    POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
     MSSQL_SERVER: str
     MSSQL_PORT: int = 1433
     MSSQL_USER: str
@@ -69,28 +62,33 @@ class Settings(BaseSettings):
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
         """
-        Dynamically select DB URL based on env vars.
-        Priority: MSSQL if MSSQL_USER is set, else PostgreSQL.
+        Dynamically build a SQLAlchemy connection string for MSSQL.
+        - Azure SQL: TrustServerCertificate=no
+        - Local Docker MSSQL: TrustServerCertificate=yes
         """
-        if self.MSSQL_USER:
-            return "mssql+pymssql://{}:{}@{}:{}/{}".format(
-                self.MSSQL_USER,
-                self.MSSQL_SA_PASSWORD,
-                self.MSSQL_SERVER,
-                self.MSSQL_PORT,
-                self.MSSQL_DB
-            )
-        elif self.POSTGRES_USER:
-            return MultiHostUrl.build(
-                scheme="postgresql+psycopg",
-                username=self.POSTGRES_USER,
-                password=self.POSTGRES_PASSWORD,
-                host=self.POSTGRES_SERVER,
-                port=self.POSTGRES_PORT,
-                path=self.POSTGRES_DB,
-            )
+        if not self.MSSQL_USER:
+            raise ValueError("No MSSQL credentials provided!")
+
+        # Decide whether to trust the server certificate
+        if "localhost" in self.MSSQL_SERVER or "mssql" in self.MSSQL_SERVER:
+            trust_cert = "yes"
         else:
-            raise ValueError("No database credentials provided!")
+            trust_cert = "no"
+
+        return (
+            "mssql+pyodbc://{user}:{password}@{server}:{port}/{db}"
+            "?driver=ODBC+Driver+18+for+SQL+Server"
+            "&Encrypt=yes"
+            "&TrustServerCertificate={trust_cert}"
+            "&ConnectionTimeout=30"
+        ).format(
+            user=self.MSSQL_USER,
+            password=self.MSSQL_SA_PASSWORD,
+            server=self.MSSQL_SERVER,
+            port=self.MSSQL_PORT,
+            db=self.MSSQL_DB,
+            trust_cert=trust_cert,
+        )
 
     SMTP_TLS: bool = True
     SMTP_SSL: bool = False
@@ -151,7 +149,7 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
+        self._check_default_secret("MSSQL_SA_PASSWORD", self.MSSQL_SA_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )

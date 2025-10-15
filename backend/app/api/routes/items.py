@@ -33,6 +33,7 @@ def read_items(
         statement = (
             select(Item)
             .where(Item.owner_id == current_user.id)
+            .order_by(Item.id)
             .offset(skip)
             .limit(limit)
         )
