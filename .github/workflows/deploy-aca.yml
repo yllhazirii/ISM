@@ -34,39 +34,38 @@ jobs:
           echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$COMMIT_SHA" >> $GITHUB_ENV
           echo "BACKEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/backend:latest" >> $GITHUB_ENV
 
-      # 5️⃣ Build & Push Backend Image
-      - name: Build & Push Backend Image
-        run: |
-          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
-          docker push $BACKEND_IMAGE
-          docker push $BACKEND_IMAGE_LATEST
+#      # 5️⃣ Build & Push Backend Image
+#      - name: Build & Push Backend Image
+#        run: |
+#          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
+#          docker push $BACKEND_IMAGE
+#          docker push $BACKEND_IMAGE_LATEST
 
       # 6️⃣ Deploy or Update Backend in ACI
       - name: Deploy or Update Backend in ACI
+        env:
+          AZURE_RESOURCE_GROUP: ${{ secrets.AZURE_RESOURCE_GROUP }}
         run: |
           STATIC_DNS_LABEL=backend
           CONTAINER_NAME=backend-container
 
-          # Check if the container already exists
           if az container show \
-            --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-            --name $CONTAINER_NAME &> /dev/null; then
+            --resource-group "$AZURE_RESOURCE_GROUP" \
+            --name "$CONTAINER_NAME" &> /dev/null; then
             echo "Container exists, updating image..."
             az container update \
-              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --name $CONTAINER_NAME \
-              --image $BACKEND_IMAGE_LATEST
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$CONTAINER_NAME" \
+              --image "$BACKEND_IMAGE_LATEST"
           else
             echo "Container does not exist, creating..."
             az container create \
-              --resource-group ${{ secrets.AZURE_RESOURCE_GROUP }} \
-              --name $CONTAINER_NAME \
-              --image $BACKEND_IMAGE_LATEST \
+              --resource-group "$AZURE_RESOURCE_GROUP" \
+              --name "$CONTAINER_NAME" \
+              --image "$BACKEND_IMAGE_LATEST" \
               --cpu 1 --memory 1 \
-              --dns-name-label $STATIC_DNS_LABEL \
-              --registry-login-server ${{ secrets.ACR_NAME }}.azurecr.io \
-              --registry-username ${{ secrets.ACR_USERNAME }} \
-              --registry-password ${{ secrets.ACR_PASSWORD }} \
+              --dns-name-label "$STATIC_DNS_LABEL" \
               --ports 80 443 \
               --restart-policy Always
           fi
+
