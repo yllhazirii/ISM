@@ -10,11 +10,10 @@ on:
 jobs:
   build-and-deploy-backend:
     runs-on: ubuntu-latest
-
     env:
-      AZURE_RESOURCE_GROUP: $AZURE_RESOURCE_GROUP
-      CONTAINER_APP_NAME: $CONTAINER_APP_NAME
-      CONTAINER_APP_ENV: $CONTAINER_APP_ENV
+      AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}
+      CONTAINER_APP_NAME: ${{ vars.CONTAINER_APP_NAME }}
+      CONTAINER_APP_ENV: ${{ vars.CONTAINER_APP_ENV }}
 
     steps:
       # 1️⃣ Checkout repository
@@ -40,13 +39,19 @@ jobs:
           echo "Using tag: $TAG_NAME"
           echo "BACKEND_IMAGE=${{ secrets.ACR_NAME }}.azurecr.io/backend:$TAG_NAME" >> $GITHUB_ENV
           echo "BACKEND_IMAGE_LATEST=${{ secrets.ACR_NAME }}.azurecr.io/backend:latest" >> $GITHUB_ENV
-
-      # 6️⃣ Build & Push Backend Image
-      - name: Build & Push Backend Image
+      - name: Print variables
         run: |
-          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
-          docker push $BACKEND_IMAGE
-          docker push $BACKEND_IMAGE_LATEST
+          echo "RG: $AZURE_RESOURCE_GROUP"
+          echo "Container App: $CONTAINER_APP_NAME"
+          echo "Env: $CONTAINER_APP_ENV"
+          echo "Backend Image: $BACKEND_IMAGE_LATEST"
+#
+#      # 6️⃣ Build & Push Backend Image
+#      - name: Build & Push Backend Image
+#        run: |
+#          docker build -t $BACKEND_IMAGE -t $BACKEND_IMAGE_LATEST ./backend
+#          docker push $BACKEND_IMAGE
+#          docker push $BACKEND_IMAGE_LATEST
 
       # 7️⃣ Create or Update Container App
       - name: Create or Update Container App
