@@ -27,12 +27,6 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # 3️⃣ Set Azure Subscription
-      - name: Set Azure Subscription
-        run: |
-          az account show
-          az account set --subscription ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-
       # 4️⃣ Docker Login to ACR
       - name: Docker Login to ACR
         run: |
